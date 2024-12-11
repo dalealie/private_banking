@@ -327,6 +327,62 @@ def update_transaction(transaction_id):
         "transaction_Date": transaction[4]
     }), 200
 
+@app.route("/employees/<int:employee_id>", methods=["DELETE"])
+def delete_employee(employee_id):
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM Employees WHERE Employee_ID = %s", (employee_id,))
+    employee = cursor.fetchone()
+
+    if not employee:
+        return handle_error("Employee not found", 404)
+
+    cursor.execute("DELETE FROM Employees WHERE Employee_ID = %s", (employee_id,))
+    mysql.connection.commit()
+
+    return jsonify({"message": f"Employee with ID {employee_id} has been deleted."}), 200
+
+@app.route("/clients/<int:client_id>", methods=["DELETE"])
+def delete_client(client_id):
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM Clients WHERE Client_ID = %s", (client_id,))
+    client = cursor.fetchone()
+
+    if not client:
+        return handle_error("Client not found", 404)
+
+    cursor.execute("DELETE FROM Clients WHERE Client_ID = %s", (client_id,))
+    mysql.connection.commit()
+
+    return jsonify({"message": f"Client with ID {client_id} has been deleted."}), 200
+
+@app.route("/products/<int:product_id>", methods=["DELETE"])
+def delete_product(product_id):
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM Products WHERE Product_ID = %s", (product_id,))
+    product = cursor.fetchone()
+
+    if not product:
+        return handle_error("Product not found", 404)
+
+    cursor.execute("DELETE FROM Products WHERE Product_ID = %s", (product_id,))
+    mysql.connection.commit()
+
+    return jsonify({"message": f"Product with ID {product_id} has been deleted."}), 200
+
+@app.route("/transactions/<int:transaction_id>", methods=["DELETE"])
+def delete_transaction(transaction_id):
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM Transactions WHERE Transaction_ID = %s", (transaction_id,))
+    transaction = cursor.fetchone()
+
+    if not transaction:
+        return handle_error("Transaction not found", 404)
+
+    cursor.execute("DELETE FROM Transactions WHERE Transaction_ID = %s", (transaction_id,))
+    mysql.connection.commit()
+
+    return jsonify({"message": f"Transaction with ID {transaction_id} has been deleted."}), 200
+
 
 if __name__ == "__main__":
     app.run(debug=True)
