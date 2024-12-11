@@ -18,13 +18,13 @@ Environment variables needed:
 - ```MYSQL_USER```: MySQL username (e.g., root)
 - ```MYSQL_PASSWORD```: MySQL password
 - ```MYSQL_DB```: Name of the database (e.g., mini_private_banking)
-
+- ```SECRET_KEY```: daless
 
 
 ## API Endpoints
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| /	| GET	| Welcome message |
+| /	| GET	| Home page |
 | /employees	| GET	| List all employees |
 | /employees	| POST	| Add a new employee |
 | /employees/<employee_id>	| PUT	| Update an employee's details |
@@ -50,7 +50,6 @@ Environment variables needed:
 Use conventional commits:
 ```bash
 feat: add user authentication
-feat: add employee management feature
 fix: resolve database connection issue
 docs: update API documentation
 test: add transaction validation tests
