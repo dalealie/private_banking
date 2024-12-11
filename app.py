@@ -1,12 +1,19 @@
+import json
+import datetime
+import jwt
 from flask import Flask, request, jsonify, abort
 from flask_mysqldb import MySQL
+from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
 app.config["MYSQL_HOST"] = "localhost"
 app.config["MYSQL_USER"] = "root"
 app.config["MYSQL_PASSWORD"] = "root"
-app.config["MYSQL_DB"] = "mini_private_banking" 
+app.config["MYSQL_DB"] = "mini_private_banking"
+app.config["SECRET_KEY"] = "daless"
+
 mysql = MySQL(app)
+bcrypt = Bcrypt(app)
 
 def handle_error(error_msg, status_code):
     return jsonify({"error": error_msg}), status_code
@@ -15,6 +22,76 @@ def handle_error(error_msg, status_code):
 def hello_world():
     return "WELCOME TO PRIVATE BANKING DATABASE"
 
+def validate_token():
+    token = request.headers.get("x-access-token")
+    if not token:
+        return None, handle_error("Token is missing!", 401)
+    try:
+        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        current_user = {"user_id": data["user_id"], "role": data["role"]}
+        return current_user, None
+    except Exception:
+        return None, handle_error("Token is invalid!", 401)
+
+def validate_role(current_user, required_role):
+    if current_user["role"] != required_role:
+        return handle_error("Access forbidden: insufficient role", 403)
+    return None
+
+users_data = {
+    "users": []
+}
+
+def save_to_json():
+    with open("users.json", "w") as f:
+        json.dump(users_data, f)
+
+def load_from_json():
+    global users_data
+    try:
+        with open("users.json", "r") as f:
+            users_data = json.load(f)
+    except FileNotFoundError:
+        save_to_json()
+
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    if not data or not data.get("username") or not data.get("password") or not data.get("role"):
+        return handle_error("Missing required fields: username, password, and role are mandatory", 400)
+    username = data["username"]
+    password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+    role = data["role"]
+    load_from_json()
+    for user in users_data["users"]:
+        if user["username"] == username:
+            return handle_error("Username already exists", 400)
+    new_user = {"username": username, "password": password, "role": role}
+    users_data["users"].append(new_user)
+    save_to_json()
+    return jsonify({"message": "User registered successfully"}), 201
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    if not data or not data.get("username") or not data.get("password"):
+        return handle_error("Missing required fields: username and password are mandatory", 400)
+    username = data["username"]
+    password = data["password"]
+    load_from_json()
+    for user in users_data["users"]:
+        if user["username"] == username and bcrypt.check_password_hash(user["password"], password):
+            token = jwt.encode(
+                {
+                    "user_id": username,
+                    "role": user["role"],
+                    "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),
+                },
+                app.config["SECRET_KEY"],
+                algorithm="HS256",
+            )
+            return jsonify({"token": token}), 200
+    return handle_error("Invalid credentials", 401)
 
 @app.route("/employees")
 def get_employees():
@@ -96,6 +173,10 @@ def get_transactions():
 
 @app.route("/employees", methods=["POST"])
 def add_employee():
+    current_user, error = validate_token()
+    if error:
+        return error
+    
     data = request.get_json()
     employee_id = data.get('employee_ID')
     name = data.get('name')
@@ -120,6 +201,10 @@ def add_employee():
 
 @app.route("/clients", methods=["POST"])
 def add_client():
+    current_user, error = validate_token()
+    if error:
+        return error
+     
     data = request.get_json()
     client_id = data.get('client_ID')
     name = data.get('name')
@@ -153,6 +238,11 @@ def add_client():
 
 @app.route("/products", methods=["POST"])
 def add_product():
+    current_user, error = validate_token()
+    if error:
+        return error
+  
+
     data = request.get_json()
     product_id = data.get('product_ID')
     product_type = data.get('product_Type')
@@ -180,6 +270,10 @@ def add_product():
 
 @app.route("/transactions", methods=["POST"])
 def add_transaction():
+    current_user, error = validate_token()
+    if error:
+        return error
+  
     data = request.get_json()
     transaction_id = data.get('transaction_ID')
     client_id = data.get('client_ID')
@@ -213,6 +307,10 @@ def add_transaction():
 
 @app.route("/employees/<int:employee_id>", methods=["PUT"])
 def update_employee(employee_id):
+    current_user, error = validate_token()
+    if error:
+        return error
+  
     data = request.get_json()
     name = data.get('name')
 
@@ -239,6 +337,10 @@ def update_employee(employee_id):
 
 @app.route("/clients/<int:client_id>", methods=["PUT"])
 def update_client(client_id):
+    current_user, error = validate_token()
+    if error:
+        return error
+  
     data = request.get_json()
     name = data.get('name')
     email = data.get('email')
@@ -271,6 +373,10 @@ def update_client(client_id):
 
 @app.route("/products/<int:product_id>", methods=["PUT"])
 def update_product(product_id):
+    current_user, error = validate_token()
+    if error:
+        return error
+  
     data = request.get_json()
     product_type = data.get('product_Type')
 
@@ -297,6 +403,10 @@ def update_product(product_id):
 
 @app.route("/transactions/<int:transaction_id>", methods=["PUT"])
 def update_transaction(transaction_id):
+    current_user, error = validate_token()
+    if error:
+        return error
+  
     data = request.get_json()
     client_id = data.get('client_ID')
     product_id = data.get('product_ID')
@@ -329,6 +439,10 @@ def update_transaction(transaction_id):
 
 @app.route("/employees/<int:employee_id>", methods=["DELETE"])
 def delete_employee(employee_id):
+    current_user, error = validate_token()
+    if error:
+        return error
+  
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM Employees WHERE Employee_ID = %s", (employee_id,))
     employee = cursor.fetchone()
@@ -343,6 +457,10 @@ def delete_employee(employee_id):
 
 @app.route("/clients/<int:client_id>", methods=["DELETE"])
 def delete_client(client_id):
+    current_user, error = validate_token()
+    if error:
+        return error
+  
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM Clients WHERE Client_ID = %s", (client_id,))
     client = cursor.fetchone()
@@ -357,6 +475,10 @@ def delete_client(client_id):
 
 @app.route("/products/<int:product_id>", methods=["DELETE"])
 def delete_product(product_id):
+    current_user, error = validate_token()
+    if error:
+        return error
+  
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM Products WHERE Product_ID = %s", (product_id,))
     product = cursor.fetchone()
@@ -371,6 +493,10 @@ def delete_product(product_id):
 
 @app.route("/transactions/<int:transaction_id>", methods=["DELETE"])
 def delete_transaction(transaction_id):
+    current_user, error = validate_token()
+    if error:
+        return error
+  
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM Transactions WHERE Transaction_ID = %s", (transaction_id,))
     transaction = cursor.fetchone()
