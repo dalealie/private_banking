@@ -20,7 +20,48 @@ def handle_error(error_msg, status_code):
 
 @app.route("/")
 def hello_world():
-    return "WELCOME TO PRIVATE BANKING DATABASE"
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Private Banking Database</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f9;
+                color: #333;
+                margin: 0;
+                padding: 0;
+                text-align: center;
+                padding-top: 50px;
+            }
+            button {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 15px 25px;
+                font-size: 1.2em;
+                margin: 10px;
+                cursor: pointer;
+                border-radius: 5px;
+                transition: background-color 0.3s;
+            }
+            button:hover {
+                background-color: #2980b9;
+            }
+        </style>
+    </head>
+    <body>
+        <button onclick="window.location.href='/employees'">Employees</button>
+        <button onclick="window.location.href='/clients'">Clients</button>
+        <button onclick="window.location.href='/products'">Products</button>
+        <button onclick="window.location.href='/transactions'">Transactions</button>
+    </body>
+    </html>
+    """
+
 
 def validate_token():
     token = request.headers.get("x-access-token")
@@ -33,9 +74,12 @@ def validate_token():
     except Exception:
         return None, handle_error("Token is invalid!", 401)
 
-def validate_role(current_user, required_role):
-    if current_user["role"] != required_role:
-        return handle_error("Access forbidden: insufficient role", 403)
+def validate_role(current_user, valid_roles):
+    if isinstance(valid_roles, str):
+        valid_roles = [valid_roles]
+    
+    if current_user["role"] not in valid_roles:
+        return jsonify({"error": "Unauthorized access"}), 403
     return None
 
 users_data = {
@@ -177,6 +221,11 @@ def add_employee():
     if error:
         return error
     
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+    
     data = request.get_json()
     employee_id = data.get('employee_ID')
     name = data.get('name')
@@ -205,6 +254,11 @@ def add_client():
     if error:
         return error
      
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+       
     data = request.get_json()
     client_id = data.get('client_ID')
     name = data.get('name')
@@ -241,7 +295,12 @@ def add_product():
     current_user, error = validate_token()
     if error:
         return error
-  
+    
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+   
 
     data = request.get_json()
     product_id = data.get('product_ID')
@@ -273,6 +332,12 @@ def add_transaction():
     current_user, error = validate_token()
     if error:
         return error
+    
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+   
   
     data = request.get_json()
     transaction_id = data.get('transaction_ID')
@@ -310,6 +375,12 @@ def update_employee(employee_id):
     current_user, error = validate_token()
     if error:
         return error
+    
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+   
   
     data = request.get_json()
     name = data.get('name')
@@ -340,6 +411,12 @@ def update_client(client_id):
     current_user, error = validate_token()
     if error:
         return error
+    
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+   
   
     data = request.get_json()
     name = data.get('name')
@@ -376,7 +453,12 @@ def update_product(product_id):
     current_user, error = validate_token()
     if error:
         return error
-  
+    
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+   
     data = request.get_json()
     product_type = data.get('product_Type')
 
@@ -406,7 +488,12 @@ def update_transaction(transaction_id):
     current_user, error = validate_token()
     if error:
         return error
-  
+    
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+     
     data = request.get_json()
     client_id = data.get('client_ID')
     product_id = data.get('product_ID')
@@ -442,7 +529,12 @@ def delete_employee(employee_id):
     current_user, error = validate_token()
     if error:
         return error
-  
+    
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+     
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM Employees WHERE Employee_ID = %s", (employee_id,))
     employee = cursor.fetchone()
@@ -460,7 +552,12 @@ def delete_client(client_id):
     current_user, error = validate_token()
     if error:
         return error
-  
+    
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+     
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM Clients WHERE Client_ID = %s", (client_id,))
     client = cursor.fetchone()
@@ -478,7 +575,12 @@ def delete_product(product_id):
     current_user, error = validate_token()
     if error:
         return error
-  
+     
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+    
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM Products WHERE Product_ID = %s", (product_id,))
     product = cursor.fetchone()
@@ -496,7 +598,12 @@ def delete_transaction(transaction_id):
     current_user, error = validate_token()
     if error:
         return error
-  
+    
+    required_role = "admin"
+    role_error = validate_role(current_user, required_role)
+    if role_error:
+        return role_error 
+     
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM Transactions WHERE Transaction_ID = %s", (transaction_id,))
     transaction = cursor.fetchone()
