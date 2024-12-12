@@ -151,7 +151,7 @@ def login():
 @app.route("/employees")
 def get_employees():
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM Employees")
+    cursor.execute("SELECT * FROM employees")
     employees = cursor.fetchall()
     if not employees:
         return handle_error("No employees found", 404)
@@ -169,7 +169,7 @@ def get_employees():
 @app.route("/clients")
 def get_clients():
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM Clients")
+    cursor.execute("SELECT * FROM clients")
     clients = cursor.fetchall()
     if not clients:
         return handle_error("No clients found", 404)
@@ -190,7 +190,7 @@ def get_clients():
 @app.route("/products")
 def get_products():
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM Products")
+    cursor.execute("SELECT * FROM products")
     products = cursor.fetchall()
     if not products:
         return handle_error("No products found", 404)
@@ -208,7 +208,7 @@ def get_products():
 @app.route("/transactions")
 def get_transactions():
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM Transactions")
+    cursor.execute("SELECT * FROM transactions")
     transactions = cursor.fetchall()
     if not transactions:
         return handle_error("No transactions found", 404)
@@ -245,10 +245,10 @@ def add_employee():
         return handle_error("Employee ID and name are required", 400)
     
     cursor = mysql.connection.cursor()
-    cursor.execute("INSERT INTO Employees (Employee_ID, Name) VALUES (%s, %s)", (employee_id, name))
+    cursor.execute("INSERT INTO employees (Employee_ID, Name) VALUES (%s, %s)", (employee_id, name))
     mysql.connection.commit()
 
-    cursor.execute("SELECT * FROM Employees WHERE Employee_ID = %s", (employee_id,))
+    cursor.execute("SELECT * FROM employees WHERE Employee_ID = %s", (employee_id,))
     employee = cursor.fetchone()
 
     if not employee:
@@ -282,12 +282,12 @@ def add_client():
     
     cursor = mysql.connection.cursor()
     cursor.execute(
-        "INSERT INTO Clients (Client_ID, Name, Email, Phone, Client_Manager_Employee_ID) VALUES (%s, %s, %s, %s, %s)", 
+        "INSERT INTO clients (Client_ID, Name, Email, Phone, Client_Manager_Employee_ID) VALUES (%s, %s, %s, %s, %s)", 
         (client_id, name, email, phone, client_manager_employee_id)
     )
     mysql.connection.commit()
 
-    cursor.execute("SELECT * FROM Clients WHERE Client_ID = %s", (client_id,))
+    cursor.execute("SELECT * FROM clients WHERE Client_ID = %s", (client_id,))
     client = cursor.fetchone()
 
     if not client:
@@ -322,12 +322,12 @@ def add_product():
 
     cursor = mysql.connection.cursor()
     cursor.execute(
-        "INSERT INTO Products (Product_ID, Product_Type) VALUES (%s, %s)", 
+        "INSERT INTO products (Product_ID, Product_Type) VALUES (%s, %s)", 
         (product_id, product_type)
     )
     mysql.connection.commit()
 
-    cursor.execute("SELECT * FROM Products WHERE Product_ID = %s", (product_id,))
+    cursor.execute("SELECT * FROM products WHERE Product_ID = %s", (product_id,))
     product = cursor.fetchone()
 
     if not product:
@@ -362,12 +362,12 @@ def add_transaction():
 
     cursor = mysql.connection.cursor()
     cursor.execute(
-        "INSERT INTO Transactions (Transaction_ID, Client_ID, Product_ID, Transaction_Amount, Transaction_Date) VALUES (%s, %s, %s, %s, %s)",
+        "INSERT INTO transactions (Transaction_ID, Client_ID, Product_ID, Transaction_Amount, Transaction_Date) VALUES (%s, %s, %s, %s, %s)",
         (transaction_id, client_id, product_id, transaction_amount, transaction_date)
     )
     mysql.connection.commit()
 
-    cursor.execute("SELECT * FROM Transactions WHERE Transaction_ID = %s", (transaction_id,))
+    cursor.execute("SELECT * FROM transactions WHERE Transaction_ID = %s", (transaction_id,))
     transaction = cursor.fetchone()
 
     if not transaction:
@@ -401,12 +401,12 @@ def update_employee(employee_id):
 
     cursor = mysql.connection.cursor()
     cursor.execute(
-        "UPDATE Employees SET Name = %s WHERE Employee_ID = %s", 
+        "UPDATE employees SET Name = %s WHERE Employee_ID = %s", 
         (name, employee_id)
     )
     mysql.connection.commit()
 
-    cursor.execute("SELECT * FROM Employees WHERE Employee_ID = %s", (employee_id,))
+    cursor.execute("SELECT * FROM employees WHERE Employee_ID = %s", (employee_id,))
     employee = cursor.fetchone()
 
     if not employee:
@@ -440,12 +440,12 @@ def update_client(client_id):
 
     cursor = mysql.connection.cursor()
     cursor.execute(
-        "UPDATE Clients SET Name = %s, Email = %s, Phone = %s, Client_Manager_Employee_ID = %s WHERE Client_ID = %s", 
+        "UPDATE clients SET Name = %s, Email = %s, Phone = %s, Client_Manager_Employee_ID = %s WHERE Client_ID = %s", 
         (name, email, phone, client_manager_employee_id, client_id)
     )
     mysql.connection.commit()
 
-    cursor.execute("SELECT * FROM Clients WHERE Client_ID = %s", (client_id,))
+    cursor.execute("SELECT * FROM clients WHERE Client_ID = %s", (client_id,))
     client = cursor.fetchone()
 
     if not client:
@@ -478,12 +478,12 @@ def update_product(product_id):
 
     cursor = mysql.connection.cursor()
     cursor.execute(
-        "UPDATE Products SET Product_Type = %s WHERE Product_ID = %s", 
+        "UPDATE products SET Product_Type = %s WHERE Product_ID = %s", 
         (product_type, product_id)
     )
     mysql.connection.commit()
 
-    cursor.execute("SELECT * FROM Products WHERE Product_ID = %s", (product_id,))
+    cursor.execute("SELECT * FROM products WHERE Product_ID = %s", (product_id,))
     product = cursor.fetchone()
 
     if not product:
@@ -516,12 +516,12 @@ def update_transaction(transaction_id):
 
     cursor = mysql.connection.cursor()
     cursor.execute(
-        "UPDATE Transactions SET Client_ID = %s, Product_ID = %s, Transaction_Amount = %s, Transaction_Date = %s WHERE Transaction_ID = %s",
+        "UPDATE transactions SET Client_ID = %s, Product_ID = %s, Transaction_Amount = %s, Transaction_Date = %s WHERE Transaction_ID = %s",
         (client_id, product_id, transaction_amount, transaction_date, transaction_id)
     )
     mysql.connection.commit()
 
-    cursor.execute("SELECT * FROM Transactions WHERE Transaction_ID = %s", (transaction_id,))
+    cursor.execute("SELECT * FROM transactions WHERE Transaction_ID = %s", (transaction_id,))
     transaction = cursor.fetchone()
 
     if not transaction:
@@ -547,13 +547,13 @@ def delete_employee(employee_id):
         return role_error 
      
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM Employees WHERE Employee_ID = %s", (employee_id,))
+    cursor.execute("SELECT * FROM employees WHERE Employee_ID = %s", (employee_id,))
     employee = cursor.fetchone()
 
     if not employee:
         return handle_error("Employee not found", 404)
 
-    cursor.execute("DELETE FROM Employees WHERE Employee_ID = %s", (employee_id,))
+    cursor.execute("DELETE FROM employees WHERE Employee_ID = %s", (employee_id,))
     mysql.connection.commit()
 
     return jsonify({"message": f"Employee with ID {employee_id} has been deleted."}), 200
@@ -570,13 +570,13 @@ def delete_client(client_id):
         return role_error 
      
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM Clients WHERE Client_ID = %s", (client_id,))
+    cursor.execute("SELECT * FROM clients WHERE Client_ID = %s", (client_id,))
     client = cursor.fetchone()
 
     if not client:
         return handle_error("Client not found", 404)
 
-    cursor.execute("DELETE FROM Clients WHERE Client_ID = %s", (client_id,))
+    cursor.execute("DELETE FROM clients WHERE Client_ID = %s", (client_id,))
     mysql.connection.commit()
 
     return jsonify({"message": f"Client with ID {client_id} has been deleted."}), 200
@@ -593,13 +593,13 @@ def delete_product(product_id):
         return role_error 
     
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM Products WHERE Product_ID = %s", (product_id,))
+    cursor.execute("SELECT * FROM products WHERE Product_ID = %s", (product_id,))
     product = cursor.fetchone()
 
     if not product:
         return handle_error("Product not found", 404)
 
-    cursor.execute("DELETE FROM Products WHERE Product_ID = %s", (product_id,))
+    cursor.execute("DELETE FROM products WHERE Product_ID = %s", (product_id,))
     mysql.connection.commit()
 
     return jsonify({"message": f"Product with ID {product_id} has been deleted."}), 200
@@ -616,13 +616,13 @@ def delete_transaction(transaction_id):
         return role_error 
      
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM Transactions WHERE Transaction_ID = %s", (transaction_id,))
+    cursor.execute("SELECT * FROM transactions WHERE Transaction_ID = %s", (transaction_id,))
     transaction = cursor.fetchone()
 
     if not transaction:
         return handle_error("Transaction not found", 404)
 
-    cursor.execute("DELETE FROM Transactions WHERE Transaction_ID = %s", (transaction_id,))
+    cursor.execute("DELETE FROM transactions WHERE Transaction_ID = %s", (transaction_id,))
     mysql.connection.commit()
 
     return jsonify({"message": f"Transaction with ID {transaction_id} has been deleted."}), 200
