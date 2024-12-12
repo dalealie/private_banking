@@ -22,7 +22,7 @@ def handle_error(error_msg, status_code):
 def hello_world():
     return """
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="en">    
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -103,26 +103,35 @@ def register():
     data = request.get_json()
     if not data or not data.get("username") or not data.get("password") or not data.get("role"):
         return handle_error("Missing required fields: username, password, and role are mandatory", 400)
+    
     username = data["username"]
     password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
     role = data["role"]
+    
+    if role not in ["admin", "user"]:
+        return handle_error("Invalid role. Must be 'admin' or 'user'", 400)
+    
     load_from_json()
     for user in users_data["users"]:
         if user["username"] == username:
             return handle_error("Username already exists", 400)
+    
     new_user = {"username": username, "password": password, "role": role}
     users_data["users"].append(new_user)
     save_to_json()
     return jsonify({"message": "User registered successfully"}), 201
+
 
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
     if not data or not data.get("username") or not data.get("password"):
         return handle_error("Missing required fields: username and password are mandatory", 400)
+    
     username = data["username"]
     password = data["password"]
     load_from_json()
+    
     for user in users_data["users"]:
         if user["username"] == username and bcrypt.check_password_hash(user["password"], password):
             token = jwt.encode(
@@ -135,7 +144,9 @@ def login():
                 algorithm="HS256",
             )
             return jsonify({"token": token}), 200
+    
     return handle_error("Invalid credentials", 401)
+
 
 @app.route("/employees")
 def get_employees():
